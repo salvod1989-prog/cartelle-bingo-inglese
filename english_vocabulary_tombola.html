@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Vocabulary Tombola</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #0f2818 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            z-index: 1;
+            color: white;
+            font-size: 1.5em;
+            animation: fall linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 15px;
+            color: #ffd700;
+            font-family: 'Brush Script MT', cursive;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d5a3d;
+            margin-bottom: 10px;
+        }
+
+        .card-selector, .color-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .card-option, .color-option {
+            padding: 12px 24px;
+            font-size: 1.2em;
+            border: 3px solid #2d5a3d;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            color: #2d5a3d;
+        }
+
+        .color-option {
+            width: 60px;
+            height: 60px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid transparent;
+        }
+
+        .color-option.blue { background: linear-gradient(135deg, #4a9fd8 0%, #5eb3e8 100%); }
+        .color-option.red { background: linear-gradient(135deg, #e85d75 0%, #f07489 100%); }
+        .color-option.green { background: linear-gradient(135deg, #5cb85c 0%, #7bc87b 100%); }
+        .color-option.orange { background: linear-gradient(135deg, #f0ad4e 0%, #f5be6e 100%); }
+
+        .card-option:hover, .color-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .card-option.selected {
+            background: #c41e3a;
+            color: white;
+            border-color: #ffd700;
+        }
+
+        .color-option.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .mascot-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mascot-option {
+            font-size: 3em;
+            cursor: pointer;
+            transition: all 0.3s;
+            filter: grayscale(100%);
+            opacity: 0.5;
+            padding: 10px;
+            border-radius: 15px;
+            border: 3px solid transparent;
+        }
+
+        .mascot-option:hover {
+            transform: scale(1.2);
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+
+        .mascot-option.selected {
+            filter: grayscale(0%);
+            opacity: 1;
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.2);
+            transform: scale(1.1);
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 100%;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b1a2e 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(196, 30, 58, 0.5);
+        }
+
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .tombola-card {
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            position: relative;
+            border: 8px solid white;
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+        }
+
+        .tombola-card.blue { background: linear-gradient(135deg, #4a9fd8 0%, #5eb3e8 100%); }
+        .tombola-card.red { background: linear-gradient(135deg, #e85d75 0%, #f07489 100%); }
+        .tombola-card.green { background: linear-gradient(135deg, #5cb85c 0%, #7bc87b 100%); }
+        .tombola-card.orange { background: linear-gradient(135deg, #f0ad4e 0%, #f5be6e 100%); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+        }
+
+        .card-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            background: #c41e3a;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .card-title {
+            font-size: 2.5em;
+            color: white;
+            font-family: 'Brush Script MT', cursive;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            flex: 1;
+            text-align: center;
+        }
+
+        .card-mascot {
+            font-size: 3em;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .bingo-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+
+        .bingo-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .bingo-cell {
+            flex: 1;
+            background: white;
+            border: 3px solid #4a9fd8;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            padding: 15px 10px;
+            min-height: 65px;
+            overflow: hidden;
+        }
+
+        .bingo-cell:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+
+        .bingo-cell.marked {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b1a2e 100%);
+            border-color: #ffd700;
+            color: white;
+        }
+
+        .cell-word {
+            font-size: 0.9em;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+            color: #2d5a3d;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .bingo-cell.marked .cell-word {
+            color: white;
+        }
+
+        .bingo-cell.marked::after {
+            content: '⭐';
+            position: absolute;
+            font-size: 2em;
+            animation: starPop 0.5s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes starPop {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.3) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 0.9;
+            }
+        }
+
+        .tombola-card.win-shake {
+            animation: shake 0.6s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+
+        .bingo-cell.win-flash {
+            box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.9);
+        }
+
+        .win-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            padding: 50px 80px;
+            border-radius: 30px;
+            font-size: 5em;
+            font-weight: 900;
+            font-family: 'Arial Black', 'Arial Bold', sans-serif;
+            color: #c41e3a;
+            box-shadow: 0 15px 60px rgba(0,0,0,0.6);
+            z-index: 1000;
+            text-align: center;
+            border: 8px solid white;
+            animation: popupAppear 0.5s ease-out forwards;
+            letter-spacing: 3px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+        }
+
+        @keyframes popupAppear {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2) rotate(10deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes popupDisappear {
+            0% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            font-size: 2em;
+            animation: confettiFall linear forwards;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0.3;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .header, .controls {
+                display: none;
+            }
+            .tombola-card {
+                page-break-after: always;
+                box-shadow: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+            .card-title {
+                font-size: 2em;
+            }
+            .bingo-grid {
+                gap: 8px;
+                padding: 12px;
+            }
+            .bingo-row {
+                gap: 8px;
+            }
+            .bingo-cell {
+                min-height: 55px;
+                padding: 12px 8px;
+                border-width: 2px;
+            }
+            .cell-word {
+                font-size: 0.75em;
+            }
+            .win-popup {
+                font-size: 3em;
+                padding: 30px 50px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bingo-cell {
+                min-height: 50px;
+                padding: 10px 6px;
+            }
+            .cell-word {
+                font-size: 0.65em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 English Vocabulary Tombola 🎓</h1>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Seleziona il numero di cartelle:</label>
+            <div class="card-selector">
+                <div class="card-option selected" onclick="selectCards(1)">1 Cartella</div>
+                <div class="card-option" onclick="selectCards(2)">2 Cartelle</div>
+                <div class="card-option" onclick="selectCards(3)">3 Cartelle</div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Scegli il colore della cartella:</label>
+            <div class="color-selector">
+                <div class="color-option blue selected" onclick="selectColor('blue')" title="Azzurro"></div>
+                <div class="color-option red" onclick="selectColor('red')" title="Rosso"></div>
+                <div class="color-option green" onclick="selectColor('green')" title="Verde"></div>
+                <div class="color-option orange" onclick="selectColor('orange')" title="Arancione"></div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Scegli la tua icona portafortuna:</label>
+            <div class="mascot-selector">
+                <div class="mascot-option selected" onclick="selectMascot('🍀')" title="Quadrifoglio">🍀</div>
+                <div class="mascot-option" onclick="selectMascot('🐞')" title="Coccinella">🐞</div>
+                <div class="mascot-option" onclick="selectMascot('🌟')" title="Stella">🌟</div>
+                <div class="mascot-option" onclick="selectMascot('🎯')" title="Bersaglio">🎯</div>
+                <div class="mascot-option" onclick="selectMascot('💎')" title="Diamante">💎</div>
+                <div class="mascot-option" onclick="selectMascot('🦄')" title="Unicorno">🦄</div>
+                <div class="mascot-option" onclick="selectMascot('🐉')" title="Drago">🐉</div>
+                <div class="mascot-option" onclick="selectMascot('👑')" title="Corona">👑</div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <button class="btn btn-generate" onclick="generateCards()">
+                🎲 Genera Cartelle
+            </button>
+        </div>
+    </div>
+
+    <div class="cards-container" id="cardsContainer"></div>
+
+    <script>
+        const vocabularyItems = [
+            "CALM", "CHEERFUL", "CLEVER", "CONFIDENT", "DISHONEST", "DISORGANISED", 
+            "FRIENDLY", "FUNNY", "HARD-WORKING", "HONEST", "IMPATIENT", "INSENSITIVE", 
+            "KIND", "LAZY", "MISERABLE", "NERVOUS", "NOISY", "ORGANISED", "OUTGOING", 
+            "PATIENT", "POLITE", "QUIET", "RELIABLE", "RUDE", "SENSIBLE", "SENSITIVE", 
+            "SERIOUS", "SHY", "UNFRIENDLY", "UNHAPPY", "ACTIVE", "TALKATIVE", "SPORTY", 
+            "ADVENTUROUS", "LOVING", "RESPONSIBLE", "BOSSY", "SELFISH", "UNKIND", 
+            "UNRELIABLE", "CARING", "MESSY", "MODEST", "MEAN", "STUBBORN", "IMMATURE",
+            "FOOTBALL", "TENNIS", "ICE HOCKEY", "VOLLEYBALL", "WATER POLO", 
+            "FOOTBALL PITCH", "BASKETBALL COURT", "TENNIS BALL", "RACKET", "NET", 
+            "STICK", "BLADES", "ICE SKATES", "ICE RINK", "SWIMMING CAP", "SWIMMING POOL", 
+            "HELMET", "BASEBALL BAT", "BOUNCE", "BEAT", "BEND", "CATCH", "DIVE", "DRAW", 
+            "HIT", "JUMP", "PASS", "SCORE", "STRETCH", "KICK", "LOSE", "WIN", "THROW", 
+            "TACKLE", "KEEP FIT", "JOIN A CLUB", "TAKE UP", "OUTDOOR SPORT", 
+            "CHAT ONLINE", "GO SHOPPING", "INSTRUMENT", "CHESS", "COSTUME", "PAINT"
+        ];
+
+        let selectedCardCount = 1;
+        let selectedColor = 'blue';
+        let selectedMascot = '🍀';
+        let generatedCards = [];
+
+        function selectCards(count) {
+            selectedCardCount = count;
+            document.querySelectorAll('.card-option').forEach((option, index) => {
+                option.classList.toggle('selected', index === count - 1);
+            });
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`.color-option.${color}`).classList.add('selected');
+        }
+
+        function selectMascot(mascot) {
+            selectedMascot = mascot;
+            document.querySelectorAll('.mascot-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function shuffle(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function generateSingleCard() {
+            const shuffled = shuffle(vocabularyItems);
+            // Take 15 words (5 per row)
+            const card = [
+                shuffled.slice(0, 5),
+                shuffled.slice(5, 10),
+                shuffled.slice(10, 15)
+            ];
+            return card;
+        }
+
+        function generateCards() {
+            generatedCards = [];
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+
+            for (let i = 0; i < selectedCardCount; i++) {
+                const cardData = generateSingleCard();
+                generatedCards.push({
+                    data: cardData,
+                    marked: new Set(),
+                    achievements: {
+                        ambo: false,
+                        terno: false,
+                        quaterna: false,
+                        cinquina: false,
+                        tombola: false
+                    }
+                });
+
+                const cardElement = createCardElement(cardData, i);
+                container.appendChild(cardElement);
+            }
+
+            createSmallConfetti(25);
+        }
+
+        function createCardElement(cardData, cardIndex) {
+            const card = document.createElement('div');
+            card.className = `tombola-card ${selectedColor}`;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-number">${cardIndex + 1}</div>
+                    <div class="card-title">Tombola</div>
+                    <div class="card-mascot">${selectedMascot}</div>
+                </div>
+                <div class="bingo-grid" id="grid-${cardIndex}"></div>
+            `;
+
+            const grid = card.querySelector(`#grid-${cardIndex}`);
+
+            cardData.forEach((row, rowIndex) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'bingo-row';
+
+                row.forEach((word, colIndex) => {
+                    const cell = document.createElement('div');
+                    const cellId = `${cardIndex}-${rowIndex}-${colIndex}`;
+
+                    cell.className = 'bingo-cell';
+                    cell.innerHTML = `<div class="cell-word">${word}</div>`;
+                    cell.onclick = () => toggleCell(cardIndex, cellId);
+
+                    rowDiv.appendChild(cell);
+                });
+
+                grid.appendChild(rowDiv);
+            });
+
+            return card;
+        }
+
+        function toggleCell(cardIndex, cellId) {
+            const card = generatedCards[cardIndex];
+            const grid = document.getElementById(`grid-${cardIndex}`);
+            const [cIndex, rowIndex, colIndex] = cellId.split('-').map(Number);
+
+            const rows = grid.querySelectorAll('.bingo-row');
+            const cellElement = rows[rowIndex].children[colIndex];
+
+            if (card.marked.has(cellId)) {
+                card.marked.delete(cellId);
+                cellElement.classList.remove('marked');
+            } else {
+                card.marked.add(cellId);
+                cellElement.classList.add('marked');
+            }
+
+            checkWins(cardIndex);
+        }
+
+        function checkWins(cardIndex) {
+            const cardState = generatedCards[cardIndex];
+            const grid = document.getElementById(`grid-${cardIndex}`);
+
+            const markedMatrix = [];
+            for (let r = 0; r < 3; r++) {
+                markedMatrix[r] = [];
+                for (let c = 0; c < 5; c++) {
+                    const cellId = `${cardIndex}-${r}-${c}`;
+                    markedMatrix[r][c] = cardState.marked.has(cellId);
+                }
+            }
+
+            const rowSequences = [0, 0, 0];
+            for (let r = 0; r < 3; r++) {
+                let maxConsecutive = 0;
+                let currentConsecutive = 0;
+
+                for (let c = 0; c < 5; c++) {
+                    if (markedMatrix[r][c]) {
+                        currentConsecutive++;
+                        if (currentConsecutive > maxConsecutive) {
+                            maxConsecutive = currentConsecutive;
+                        }
+                    } else {
+                        currentConsecutive = 0;
+                    }
+                }
+                rowSequences[r] = maxConsecutive;
+            }
+
+            let maxSequence = Math.max(...rowSequences);
+
+            let totalMarked = 0;
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 5; c++) {
+                    if (markedMatrix[r][c]) {
+                        totalMarked++;
+                    }
+                }
+            }
+
+            const totalPlayable = 15;
+            if (totalMarked === totalPlayable && !cardState.achievements.tombola) {
+                cardState.achievements.tombola = true;
+                showWinFeedback(cardIndex, 'BINGO!', true);
+                return;
+            }
+
+            if (maxSequence === 5 && !cardState.achievements.cinquina) {
+                cardState.achievements.cinquina = true;
+                cardState.achievements.quaterna = true;
+                cardState.achievements.terno = true;
+                cardState.achievements.ambo = true;
+                showWinFeedback(cardIndex, 'CINQUINA!');
+            } else if (maxSequence === 4 && !cardState.achievements.quaterna) {
+                cardState.achievements.quaterna = true;
+                cardState.achievements.terno = true;
+                cardState.achievements.ambo = true;
+                showWinFeedback(cardIndex, 'QUATERNA!');
+            } else if (maxSequence === 3 && !cardState.achievements.terno) {
+                cardState.achievements.terno = true;
+                cardState.achievements.ambo = true;
+                showWinFeedback(cardIndex, 'TERNO!');
+            } else if (maxSequence === 2 && !cardState.achievements.ambo) {
+                cardState.achievements.ambo = true;
+                showWinFeedback(cardIndex, 'AMBO!');
+            }
+        }
+
+        function showWinFeedback(cardIndex, message, isFull = false) {
+            const card = document.querySelectorAll('.tombola-card')[cardIndex];
+
+            const grid = card.querySelector('.bingo-grid');
+            grid.querySelectorAll('.bingo-cell.marked').forEach(cell => {
+                cell.classList.add('win-flash');
+                setTimeout(() => cell.classList.remove('win-flash'), 600);
+            });
+
+            if (isFull) {
+                card.classList.add('win-shake');
+                setTimeout(() => card.classList.remove('win-shake'), 700);
+                createBigConfetti(80);
+            } else {
+                createSmallConfetti(30);
+            }
+
+            const popup = document.createElement('div');
+            popup.className = 'win-popup';
+            popup.textContent = message;
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                popup.style.animation = 'popupDisappear 0.5s ease-in forwards';
+                setTimeout(() => popup.remove(), 500);
+            }, 2000);
+        }
+
+        function createBigConfetti(amount) {
+            const confettiEmojis = ['🎉', '🎊', '⭐', '✨', '🎁', '🎓', '📚', '✅', '🏆', '🌟'];
+
+            for (let i = 0; i < amount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.textContent = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = '-50px';
+                    confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                    confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 6000);
+                }, i * 30);
+            }
+        }
+
+        function createSmallConfetti(amount) {
+            const confettiEmojis = ['⭐', '🌟', '📚', '🎓', '✅'];
+
+            for (let i = 0; i < amount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'snowflake';
+                    confetti.textContent = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    confetti.style.opacity = Math.random();
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 5000);
+                }, i * 60);
+            }
+        }
+
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.textContent = '⭐';
+            snowflake.className = 'snowflake';
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.animationDuration = (Math.random() * 3 + 5) + 's';
+            snowflake.style.opacity = Math.random() * 0.6 + 0.2;
+            document.body.appendChild(snowflake);
+            setTimeout(() => snowflake.remove(), 8000);
+        }
+
+        setInterval(createSnowflake, 300);
+
+        generateCards();
+    </script>
+</body>
+</html>
